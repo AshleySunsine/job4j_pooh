@@ -31,7 +31,6 @@ public class TopicService implements Service {
        if (null != queueTopic.get(req.getSourceName())) {
            if (null != queueTopic.get(req.getSourceName()).get(req.getParam())) {
                return queueTopic.get(req.getSourceName()).get(req.getParam()).poll();
-
            } else {
                queueTopic.get(req.getSourceName()).put(req.getParam(), new ConcurrentLinkedQueue<>());
                return "";
