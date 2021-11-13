@@ -29,7 +29,7 @@ public class TopicService implements Service {
 
     private String topicExtract(Req req) {
        if (null != queueTopic.get(req.getSourceName())) {
-           if(null != queueTopic.get(req.getSourceName()).get(req.getParam())) {
+           if (null != queueTopic.get(req.getSourceName()).get(req.getParam())) {
                return queueTopic.get(req.getSourceName()).get(req.getParam()).poll();
 
            } else {
