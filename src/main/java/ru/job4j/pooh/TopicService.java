@@ -25,7 +25,7 @@ public class TopicService implements Service {
     }
 
     private void topicPut(Req req) {
-        for(var id : topic.get(req.getSourceName())) {
+        for (var id : topic.get(req.getSourceName())) {
             ids.getOrDefault(id, new ConcurrentLinkedQueue<>()).offer(req.getParam());
         }
     }
