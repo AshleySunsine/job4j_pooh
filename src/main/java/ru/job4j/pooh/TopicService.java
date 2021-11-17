@@ -6,7 +6,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TopicService implements Service {
     /* Map<topic, Map<id, param>>*/
-    private ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>> queueTopic = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topic = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> ids = new ConcurrentHashMap<>();
 
     @Override
     public Resp process(Req req) {
@@ -24,21 +25,22 @@ public class TopicService implements Service {
     }
 
     private void topicPut(Req req) {
-        queueTopic.get(req.getSourceName()).forEach((key, value) -> value.add(req.getParam()));
+        System.out.println(topic + " PUT");
+        for(var id : topic.get(req.getSourceName())) {
+            ids.getOrDefault(id, new ConcurrentLinkedQueue<>()).offer(req.getParam());
+        }
     }
 
     private String topicExtract(Req req) {
-       if (null != queueTopic.get(req.getSourceName())) {
-           if (null != queueTopic.get(req.getSourceName()).get(req.getParam())) {
-               return queueTopic.get(req.getSourceName()).get(req.getParam()).poll();
-           } else {
-               queueTopic.get(req.getSourceName()).put(req.getParam(), new ConcurrentLinkedQueue<>());
-               return "";
-           }
-       } else {
-           queueTopic.put(req.getSourceName(), new ConcurrentHashMap<>());
-           queueTopic.get(req.getSourceName()).put(req.getParam(), new ConcurrentLinkedQueue<>());
-           return "";
-       }
+        topic.putIfAbsent(req.getSourceName(), new ConcurrentLinkedQueue<>());
+        if (!topic.get(req.getSourceName()).contains(req.getParam())) {
+            topic.get(req.getSourceName()).offer(req.getParam());
+        }
+        ids.putIfAbsent(req.getParam(), new ConcurrentLinkedQueue<>());
+        System.out.println(topic + " " + ids + " GET");
+        if (null != ids.get(req.getParam()).peek()) {
+            return ids.get(req.getParam()).poll();
+        }
+        return "";
     }
 }
