@@ -25,7 +25,6 @@ public class TopicService implements Service {
     }
 
     private void topicPut(Req req) {
-        System.out.println(topic + " PUT");
         for(var id : topic.get(req.getSourceName())) {
             ids.getOrDefault(id, new ConcurrentLinkedQueue<>()).offer(req.getParam());
         }
@@ -37,7 +36,6 @@ public class TopicService implements Service {
             topic.get(req.getSourceName()).offer(req.getParam());
         }
         ids.putIfAbsent(req.getParam(), new ConcurrentLinkedQueue<>());
-        System.out.println(topic + " " + ids + " GET");
         if (null != ids.get(req.getParam()).peek()) {
             return ids.get(req.getParam()).poll();
         }
