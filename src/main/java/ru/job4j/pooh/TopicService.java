@@ -1,44 +1,29 @@
 package ru.job4j.pooh;
 
-import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TopicService implements Service {
-    /* Map<topic, Map<id, param>>*/
-    private ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topic = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> ids = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>> topics = new ConcurrentHashMap<>();
 
     @Override
     public Resp process(Req req) {
-        if ("POST".equals(req.httpRequestType())) {
-            topicPut(req);
-            return new Resp("Topic-putted", "200");
-        }
-        if ("GET".equals(req.httpRequestType())) {
-            String s = topicExtract(req);
-            if (null != s) {
-                return new Resp(s, "200");
+        Resp result = new Resp("", "204 No content");
+        ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> topic = topics.get(req.getSourceName());
+        if (topic != null && "POST".equals(req.httpRequestType())) {
+            topic.forEach((key, value) -> value.add(req.getParam()));
+            result = new Resp(req.getParam(), "201 Created");
+        } else if ("GET".equals(req.httpRequestType())) {
+            topics.putIfAbsent(req.getSourceName(), new ConcurrentHashMap<>());
+            topics.get(req.getSourceName()).putIfAbsent(req.getParam(), new ConcurrentLinkedQueue<>());
+            String getString = topics.get(req.getSourceName()).get(req.getParam()).poll();
+            if (getString != null) {
+                result = new Resp(getString, "200 OK");
             }
         }
-        return new Resp("", "200");
+        return result;
+
     }
 
-    private void topicPut(Req req) {
-        for (var id : topic.get(req.getSourceName())) {
-            ids.getOrDefault(id, new ConcurrentLinkedQueue<>()).offer(req.getParam());
-        }
-    }
-
-    private String topicExtract(Req req) {
-        topic.putIfAbsent(req.getSourceName(), new ConcurrentLinkedQueue<>());
-        if (!topic.get(req.getSourceName()).contains(req.getParam())) {
-            topic.get(req.getSourceName()).offer(req.getParam());
-        }
-        ids.putIfAbsent(req.getParam(), new ConcurrentLinkedQueue<>());
-        if (null != ids.get(req.getParam()).peek()) {
-            return ids.get(req.getParam()).poll();
-        }
-        return "";
-    }
 }
