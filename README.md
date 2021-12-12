@@ -23,10 +23,6 @@ GitHub читает этот файл в вашем репозитории и о
 
 ![Image of Yaktocat](https://octodex.github.com/images/yaktocat.png)
 
-Пример моего старого проекта на Android.
-
-https://github.com/peterarsentev/TSViewer
-
     Сборка или установка. В этом разделе указываете, как собрать ваше приложение. Обычно тут указываются команды для сборки через maven или gradle.
 
 https://github.com/peterarsentev/Spring-Security-Acl-MongoDB#configuration
