@@ -5,26 +5,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class QueueService implements Service {
-    private static ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> queue = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> queue = new ConcurrentHashMap<>();
     @Override
     public Resp process(Req req) {
+        Resp result = new Resp("", "204");
         if ("POST".equals(req.httpRequestType())) {
-            return post(req);
+            queue.putIfAbsent(req.getSourceName(), new ConcurrentLinkedQueue<>(Collections.singleton(req.getParam())));
+            System.out.println(queue.get(req.getSourceName()));
+            result = new Resp(req.getParam() + " added to" + req.getSourceName(), "200");
+        } else if ("GET".equals(req.httpRequestType())) {
+            String getQueue = queue.get(req.getSourceName()).poll();
+            if (getQueue != null) {
+                result = new Resp(getQueue, "500");
+            }
         }
-        if ("GET".equals(req.httpRequestType())) {
-            return get(req);
-        }
-        return new Resp("type GET or POST", "500");
-    }
-
-    private Resp post(Req req) {
-        queue.putIfAbsent(req.getSourceName(), new ConcurrentLinkedQueue<>(Collections.singleton(req.getParam())));
-        System.out.println(queue.get(req.getSourceName()));
-        return new Resp(req.getParam() + " added to" + req.getSourceName(), "200");
-    }
-
-    private Resp get(Req req) {
-
-        return new Resp(queue.get(req.getSourceName()).poll(), "500");
+        return result;
     }
 }
